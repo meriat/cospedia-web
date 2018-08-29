@@ -9,22 +9,19 @@
 
 A web application that allows the user to keep track of a variety of cosmetic products by visualizing the expiration dates using graphs.
 
-## Behavior-driven Development
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
 ## Current Features
 
+* Each user can create a personal account which allows them to access their data from anywhere, including the iOS app.
+* Users can reset their passwords.
 * Users can add/remove/edit products to/from their personal bag.
 * Calculates recommended expiration dates based on their opened date.
 
 ## Future Features
 
-* User can scan a product barcode in order to add a product to the app.
+* User can scan a product barcode in order to add a product to the database.
 * The expiration dates of products are tracked on a graph.
-* A monthly summary will be sent to each user with remainders of upcoming expirations.
-* User gets an email notification and a push alert certain days before the expiration date.
-* User can customize expiration notification timing.
+* A summary will be sent to each user with remainders of upcoming expirations.
+* User can customize expiration summary timing.
 
 ## Setup/Installation Requirements
 
@@ -42,7 +39,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ## Known Bugs
 
-None known in this version.
+* Color of "edit" item button is rendered differently in Mac OS.
 
 ## Support and contact details
 
