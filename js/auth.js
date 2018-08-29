@@ -9,69 +9,131 @@ var config = {
 };
 firebase.initializeApp(config);
 
-function User(email,password) {
+// Initialize Cloud Firestore through Firebase
+const firestore = firebase.firestore();
+const settings = {/* your settings... */ timestampsInSnapshots: true };
+firestore.settings(settings);
+
+// Create User Constructor
+function User(email, password) {
   this.email = email;
   this.password = password;
 }
+var userIDdata = { productsUPC: ["0"] }
+var productFields = { expirationDate: "", openingDate: "", product: "" }
 
-User.prototype.signUp = function() {
-  firebase.auth().createUserWithEmailAndPassword(this.email, this.password).catch(function (err) {
-    alert("Unable to sign up!")
+User.prototype.signUp = function () {
+
+  firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then(function () {
+    alert("You have signed up successfully!")
+    $("#signUpClose").click();
+    var currentUID = firebase.auth().currentUser.uid;
+    firestore.collection("User").doc(currentUID).set(userIDdata);
+    for (var i = 0; i < userIDdata.productsUPC.length; i++) {
+      firestore.collection("User").doc(currentUID).collection("products").doc(userIDdata.productsUPC[i]).set(productFields);
+    }
   })
+    .catch(function (err) {
+      alert("Unable to sign up. Please try again!")
+    })
 }
+var userIDdata = { productsUPC: ["0"] }
+var productFields = { expirationDate: "", openingDate: "", product: "" }
+User.prototype.signIn = function () {
+  var self = this;
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(function () {
+      return firebase.auth().signInWithEmailAndPassword(self.email, self.password).then(function () {
+        $("#signInClose").click();
+        var currentUID = firebase.auth().currentUser.uid;
+        // Only create a new UserID document for new users
+        var userRef = firestore.collection("User").doc(currentUID);
+        var getDoc = userRef.get()
+          .then(doc => {
+            if (!doc.exists) {
+              firestore.collection("User").doc(currentUID).set(userIDdata);
+              for (var i = 0; i < userIDdata.productsUPC.length; i++) {
+                firestore.collection("User").doc(currentUID).collection("products").doc(userIDdata.productsUPC[i]).set(productFields);
+              }
+            }
+          })
+      })
+    })
+    .catch(function (error) {
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      if (errorCode === "auth/wrong-password") {
+        alert("Incorrect credentials. Please try again!")
+      } else {
+        alert(errorMessage);
+      }
+    })
+};
 
-User.prototype.signIn = function() {
-  firebase.auth().signInWithEmailAndPassword(this.email, this.password).catch(function(err) {
-    alert("Unable to sign in. Please verify email and password!")
-  })
-}
-
-User.prototype.signOut = function() {
-  firebase.auth().signOut().catch(function(err) {
+var signOut = function () {
+  firebase.auth().signOut().then(function () {
+    alert("You have signed out successfully!")
+  }).catch(function (err) {
     alert("Unable to sign out!")
   })
-}
-User.prototype.resetPassword = function() {
-  firebase.auth().sendPasswordResetEmail(this.email).then(function() {
+};
+
+
+User.prototype.resetPassword = function () {
+  firebase.auth().sendPasswordResetEmail(this.email).then(function () {
+    $("#forgotPasswordClose").click();
     alert("An email has been sent to you!");
-  }).catch(function(err) {
+  }).catch(function (err) {
     alert("Unable to reset password!")
   })
 }
-$(document).ready (function() {
-  $("#signUp").submit(function(event) {
+$(document).ready(function () {
+  firebase.auth().onAuthStateChanged(function (user) {
+    if (user) {
+      $("#private").show();
+      $("#public").hide();
+    }
+    else {
+      $("#private").hide();
+      $("#public").show();
+    }
+  });
+  $("#signUp").submit(function (event) {
     event.preventDefault();
     var email = $("#emailSU").val();
     var password = $("#passwordSU").val();
     var passwordConf = $("#passwordConfSU").val()
-
     if (password !== passwordConf) {
       alert("Passwords don't match. Please verify!");
     }
-    else { var newUser = new User(email, password)};
-    console.log(newUser);
+    else { var newUser = new User(email, password) };
     newUser.signUp();
   })
-  $("#signIn").submit(function(event) {
+  $("#signIn").submit(function (event) {
     event.preventDefault();
     var email = $("#emailSI").val();
     var password = $("#passwordSI").val();
     var newUser = new User(email, password);
-    console.log(newUser);
+
     newUser.signIn();
-    alert("Signed in successfully!")
+
   })
 
-  $("#forgotPasswordButton").click(function() {
-    $("#signInModal").hide();
-    alert("I'm here!")
-    // window.location.href = './forgotPassword.html'
+  // Forgot password
+  $("#forgotPasswordButton").click(function () {
+    $("#signInModal").modal('hide');
   })
 
-  $("#forgotPassword").submit(function(event) {
+  // Reset password
+  $("#forgotPassword").submit(function (event) {
     event.preventDefault();
     var email = $("#emailFP").val();
     var newUser = new User(email);
     newUser.resetPassword();
   })
+
+  $("#signOutButton").click(function () {
+    signOut();
+  })
+
 })
